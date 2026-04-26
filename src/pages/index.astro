@@ -4,7 +4,50 @@ import AmbientBackground from '../components/AmbientBackground.astro';
 import WelcomeHero from '../components/WelcomeHero.astro';
 ---
 
-<Layout title="Virtual Photobooth - Welcome" bodyClass="bg-background text-on-background min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+<Layout title="Virtual Photobooth - Welcome" bodyClass="bg-background text-on-background min-h-screen flex flex-col relative overflow-x-hidden">
     <AmbientBackground variant="welcome" />
-    <WelcomeHero />
+    
+    <!-- Hero Section -->
+    <div class="flex-grow flex flex-col items-center justify-center pt-24 pb-16 min-h-[90vh]">
+        <WelcomeHero />
+    </div>
+
+    <!-- Features Section to enable scrolling and make it not stiff -->
+    <section class="w-full max-w-5xl mx-auto px-6 py-20 z-10">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-on-surface mb-4">Kenapa Memilih A-Snap?</h2>
+            <p class="text-on-surface-variant max-w-2xl mx-auto">Rasakan pengalaman virtual photobooth terbaik dengan fitur-fitur yang dirancang khusus untuk mengabadikan momen berhargamu.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-surface-container/50 backdrop-blur-sm p-8 rounded-3xl border border-outline-variant/30 hover:border-primary/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+                <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 text-primary group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                    <span class="material-symbols-outlined text-3xl">photo_camera</span>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-on-surface">Kamera Interaktif</h3>
+                <p class="text-on-surface-variant leading-relaxed">Ambil foto dengan mudah menggunakan fitur hitung mundur dan flash layaknya di photobooth asli.</p>
+            </div>
+            
+            <div class="bg-surface-container/50 backdrop-blur-sm p-8 rounded-3xl border border-outline-variant/30 hover:border-primary/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+                <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 text-primary group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300">
+                    <span class="material-symbols-outlined text-3xl">style</span>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-on-surface">Banyak Frame</h3>
+                <p class="text-on-surface-variant leading-relaxed">Pilih berbagai macam desain frame menarik yang sesuai dengan gaya dan momenmu.</p>
+            </div>
+            
+            <div class="bg-surface-container/50 backdrop-blur-sm p-8 rounded-3xl border border-outline-variant/30 hover:border-primary/50 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
+                <div class="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 text-primary group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                    <span class="material-symbols-outlined text-3xl">download</span>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-on-surface">Unduh & Bagikan</h3>
+                <p class="text-on-surface-variant leading-relaxed">Simpan hasil foto berkualitas tinggi ke perangkatmu dan siap dibagikan ke sosial media.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer Section -->
+    <footer class="w-full py-8 text-center text-on-surface-variant/60 text-sm z-10 mt-auto border-t border-outline-variant/20">
+        <p>&copy; {new Date().getFullYear()} A-Snap Virtual Photobooth. All rights reserved.</p>
+    </footer>
 </Layout>
