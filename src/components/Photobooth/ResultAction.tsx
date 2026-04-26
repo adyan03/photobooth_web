@@ -60,12 +60,22 @@ const FRAME_CONFIGS: Record<string, FrameConfig> = {
         ],
     },
     'frame-film': {
-        bgColors: [[166, 166, 166], [3, 3, 5], [43, 43, 43], [255, 87, 87]],
-        tolerances: [20, 10, 20, 20],
+        // Film strip outer zone (x=0-75 left, x=267-340 right) must NOT be inside hole bbox.
+        // Olive border analysis: photo inner area starts at x≈76, width≈194.
+        // Orange film markings: RGB ~(225,123,77) caught by [200,110,50] tol=60
+        bgColors: [
+            [166, 166, 166],  // gray background
+            [3, 3, 5],        // very dark black
+            [43, 43, 43],     // dark gray
+            [255, 87, 87],    // red text
+            [200, 110, 50],   // orange film markings (TRA400, 27A, 27)
+        ],
+        tolerances: [20, 15, 25, 20, 70],
         photoCount: 2,
         holes: [
-            { px: 34, py: 67,  pw: 281, ph: 306, shape: 'rect' },
-            { px: 34, py: 512, pw: 281, ph: 305, shape: 'rect' },
+            // Tightened to inner photo area only (x:76-269, avoiding film strip sides)
+            { px: 76, py: 68,  pw: 194, ph: 298, shape: 'rect' },
+            { px: 76, py: 513, pw: 194, ph: 297, shape: 'rect' },
         ],
     },
     'desain1': {
