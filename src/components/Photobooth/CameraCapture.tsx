@@ -187,7 +187,7 @@ export default function CameraCapture() {
                     <Button 
                         onClick={handleStartSession} 
                         disabled={!stream}
-                        className="bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm px-8 py-4 md:px-12 md:py-6 rounded-full shadow-[0_8px_30px_rgba(99,14,212,0.3)] hover:scale-[1.02] transition-all duration-300 border-none"
+                        className="bg-primary text-on-primary font-label-sm text-label-sm px-8 py-4 md:px-12 md:py-6 btn-3d-glossy"
                     >
                         <span className="material-symbols-outlined text-xl md:text-2xl mr-2">camera</span>
                         Mulai Sesi
@@ -197,7 +197,7 @@ export default function CameraCapture() {
                 {step === 'WAITING' && (
                     <Button 
                         onClick={handleReady} 
-                        className="bg-primary hover:bg-primary-container text-on-primary font-label-sm text-base md:text-lg px-8 py-5 md:px-12 md:py-8 rounded-full shadow-[0_8px_30px_rgba(99,14,212,0.3)] hover:scale-[1.02] transition-all duration-300 border-none"
+                        className="bg-primary text-on-primary font-label-sm text-base md:text-lg px-8 py-5 md:px-12 md:py-8 btn-3d-glossy"
                     >
                         <span className="material-symbols-outlined text-2xl md:text-3xl mr-2">camera</span>
                         {photos[activeIndex] ? `Retake Foto ke-${activeIndex + 1}` : `Siap! (Foto ke-${activeIndex + 1})`}
@@ -205,7 +205,7 @@ export default function CameraCapture() {
                 )}
 
                 {step === 'COUNTDOWN' && (
-                    <Button disabled className="bg-surface-variant text-on-surface-variant font-label-sm text-base md:text-lg px-8 py-5 md:px-12 md:py-8 rounded-full border-none opacity-80 cursor-not-allowed shadow-none">
+                    <Button disabled className="bg-surface-variant text-on-surface-variant font-label-sm text-base md:text-lg px-8 py-5 md:px-12 md:py-8 rounded-2xl shadow-none opacity-80 cursor-not-allowed">
                         <span className="material-symbols-outlined text-2xl md:text-3xl mr-2 animate-spin">hourglass_empty</span>
                         Bersiaplah...
                     </Button>
@@ -214,7 +214,7 @@ export default function CameraCapture() {
                 {step === 'REVIEW' && (
                     <Button 
                         onClick={handleFinish} 
-                        className="bg-primary hover:bg-primary-container text-on-primary font-label-sm text-base md:text-lg px-8 py-5 md:px-12 md:py-8 rounded-full shadow-[0_8px_30px_rgba(99,14,212,0.3)] hover:scale-[1.02] transition-all duration-300 border-none"
+                        className="bg-primary text-on-primary font-label-sm text-base md:text-lg px-8 py-5 md:px-12 md:py-8 btn-3d-glossy"
                     >
                         <span className="material-symbols-outlined text-2xl md:text-3xl mr-2">check_circle</span>
                         Lanjut ke Hasil
