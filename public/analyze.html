@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head><title>Analyze</title>
+<style>
+  body { background: #333; color: white; font-family: monospace; }
+  .container { display: flex; gap: 20px; overflow-x: auto; padding: 20px; }
+  .img-box { border: 1px solid #fff; position: relative; }
+  canvas { background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYNgf8z8zMDExMgwxgGlg0AEjmo5hwX+G2P8MDExMjAww4MAw4MAw4AAA1v8fB2b3PfwAAAAASUVORK5CYII=') repeat; }
+</style>
+</head>
+<body>
+<pre id="results">Processing...</pre>
+<div class="container" id="images"></div>
+<script>
+    async function analyzeImage(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.src = src + '?t=' + Date.now(); // cache buster
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                const data = ctx.getImageData(0, 0, img.width, img.height).data;
+                
+                let transparentPixels = [];
+                for (let y = 0; y < img.height; y++) {
+                    for (let x = 0; x < img.width; x++) {
+                        const alpha = data[(y * img.width + x) * 4 + 3];
+                        if (alpha < 128) { // check if pixel is mostly transparent
+                            transparentPixels.push({x, y});
+                        }
+                    }
+                }
+                
+                // Draw grid
+                ctx.strokeStyle = 'rgba(255,0,0,0.5)';
+                ctx.fillStyle = 'red';
+                ctx.font = '10px Arial';
+                for(let x=0; x<img.width; x+=50) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,img.height); ctx.stroke(); ctx.fillText(x, x, 10); }
+                for(let y=0; y<img.height; y+=50) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(img.width,y); ctx.stroke(); ctx.fillText(y, 0, y); }
+                
+                const container = document.getElementById('images');
+                const box = document.createElement('div');
+                box.className = 'img-box';
+                box.appendChild(canvas);
+                container.appendChild(box);
+
+                if (transparentPixels.length === 0) {
+                    resolve(`${src}: No transparent pixels found (Image is ${img.width}x${img.height})`);
+                    return;
+                }
+                
+                let holes = [];
+                let currentHole = [transparentPixels[0]];
+                
+                for (let i = 1; i < transparentPixels.length; i++) {
+                    const p = transparentPixels[i];
+                    const lastP = transparentPixels[i-1];
+                    if (p.y - lastP.y > 20) {
+                        holes.push(currentHole);
+                        currentHole = [];
+                    }
+                    currentHole.push(p);
+                }
+                holes.push(currentHole);
+                
+                let results = `${src} (${img.width}x${img.height}):\n`;
+                holes.forEach((hole, index) => {
+                    const xs = hole.map(p => p.x);
+                    const ys = hole.map(p => p.y);
+                    const minX = Math.min(...xs);
+                    const maxX = Math.max(...xs);
+                    const minY = Math.min(...ys);
+                    const maxY = Math.max(...ys);
+                    results += `  Hole ${index+1}: px=${minX}, py=${minY}, pw=${maxX-minX}, ph=${maxY-minY}\n`;
+                });
+                resolve(results);
+            };
+            img.onerror = () => resolve(`${src}: Error loading`);
+        });
+    }
+
+    async function run() {
+        const frames = [
+            '/frames/desain1.png',
+            '/frames/desain2.png',
+            '/frames/desain3.png',
+            '/frames/frame-pink.png',
+            '/frames/frame-gray.png',
+            '/frames/frame-blue.png',
+            '/frames/frame-yellow.png',
+            '/frames/frame-film.png',
+        ];
+        const results = [];
+        for (const f of frames) {
+            results.push(await analyzeImage(f));
+        }
+        document.getElementById('results').innerText = results.join('\n\n');
+    }
+    
+    run();
+</script>
+</body>
+</html>

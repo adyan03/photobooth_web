@@ -1,6 +1,250 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 
+// ─── Frame Configuration ──────────────────────────────────────────────────────
+// Each frame defines how to composite photos onto the template.
+// bgColor: the main frame background color (pixels to KEEP in the frame overlay)
+// tolerance: color matching tolerance
+// holes: photo placeholder rectangles [{ px, py, pw, ph, shape? }]
+// photoCount: number of photos this frame expects
+// shape: 'rect' | 'circle' | 'heart' | 'rounded' (default 'rect')
+
+type HoleShape = 'rect' | 'circle' | 'heart' | 'rounded';
+type FrameHole = { px: number; py: number; pw: number; ph: number; shape?: HoleShape };
+type FrameConfig = {
+    bgColors: [number, number, number][];
+    tolerances: number[];
+    holes: FrameHole[];
+    photoCount: number;
+};
+
+const FRAME_CONFIGS: Record<string, FrameConfig> = {
+    'frame-pink': {
+        bgColors: [[255, 87, 87], [136, 162, 1]],
+        tolerances: [20, 15],
+        photoCount: 3,
+        holes: [
+            { px: 59,  py: 60,  pw: 224, ph: 224, shape: 'circle' },
+            { px: 59,  py: 385, pw: 224, ph: 224, shape: 'circle' },
+            { px: 59,  py: 711, pw: 224, ph: 224, shape: 'circle' },
+        ],
+    },
+    'frame-gray': {
+        bgColors: [[166, 166, 166], [43, 43, 43], [136, 162, 1]],
+        tolerances: [20, 20, 15],
+        photoCount: 3,
+        holes: [
+            { px: 50, py: 100, pw: 242, ph: 241, shape: 'rounded' },
+            { px: 50, py: 392, pw: 242, ph: 240, shape: 'rounded' },
+            { px: 50, py: 700, pw: 242, ph: 241, shape: 'rounded' },
+        ],
+    },
+    'frame-blue': {
+        bgColors: [[56, 182, 255], [136, 162, 1]],
+        tolerances: [20, 15],
+        photoCount: 3,
+        holes: [
+            { px: 68, py: 91,  pw: 206, ph: 206, shape: 'rect' },
+            { px: 68, py: 398, pw: 206, ph: 206, shape: 'rect' },
+            { px: 68, py: 705, pw: 206, ph: 206, shape: 'rect' },
+        ],
+    },
+    'frame-yellow': {
+        bgColors: [[255, 189, 89], [136, 162, 1]],
+        tolerances: [20, 15],
+        photoCount: 3,
+        holes: [
+            { px: 50, py: 62,  pw: 242, ph: 212, shape: 'heart' },
+            { px: 50, py: 383, pw: 242, ph: 212, shape: 'heart' },
+            { px: 50, py: 705, pw: 242, ph: 211, shape: 'heart' },
+        ],
+    },
+    'frame-film': {
+        bgColors: [[166, 166, 166], [3, 3, 5], [43, 43, 43], [255, 87, 87]],
+        tolerances: [20, 10, 20, 20],
+        photoCount: 2,
+        holes: [
+            { px: 34, py: 67,  pw: 281, ph: 306, shape: 'rect' },
+            { px: 34, py: 512, pw: 281, ph: 305, shape: 'rect' },
+        ],
+    },
+    'desain1': {
+        // desain1 (509x831): 1 large left + 2 small right
+        // Border: papaya whip (253,240,213) at x=0-16, x=289-297, x=486-506
+        // Row separators: y=5-25 (top), y=702-742 (bottom/text area)
+        // Right column horizontal separator: y=359-368
+        bgColors: [[253, 240, 213], [196, 64, 48]],
+        tolerances: [12, 20],
+        photoCount: 3,
+        holes: [
+            { px: 17,  py: 26,  pw: 271, ph: 675, shape: 'rect' }, // Large left photo (x:17-287, y:26-700)
+            { px: 298, py: 26,  pw: 187, ph: 332, shape: 'rect' }, // Small right top (x:298-484, y:26-357)
+            { px: 298, py: 369, pw: 187, ph: 332, shape: 'rect' }, // Small right bottom (x:298-484, y:369-700)
+        ],
+    },
+    'desain2': {
+        // desain2 (433x598): 1 landscape top + 2 portrait bottom side-by-side
+        // Border: x=3-18 (left), x=417-432 (right), y=0-14 (top), y=239-250 (mid divider), y=508-595 (bottom)
+        // Bottom vertical divider: x=212-223
+        bgColors: [[253, 240, 213], [196, 64, 48]],
+        tolerances: [12, 20],
+        photoCount: 3,
+        holes: [
+            { px: 19,  py: 15,  pw: 397, ph: 223, shape: 'rect' }, // Wide top photo (x:19-415, y:15-237)
+            { px: 19,  py: 251, pw: 192, ph: 256, shape: 'rect' }, // Bottom left (x:19-210, y:251-506)
+            { px: 224, py: 251, pw: 192, ph: 256, shape: 'rect' }, // Bottom right (x:224-415, y:251-506)
+        ],
+    },
+    'desain3': {
+        // desain3 (252x643): 3 landscape photos stacked vertically
+        // Border: x=6-16 (left), x=239-250 (right)
+        // Row separators: y=3-14 (top), y=182-199 (div1), y=367-383 (div2), y=552-588 (bottom+text)
+        bgColors: [[253, 240, 213], [196, 64, 48]],
+        tolerances: [12, 20],
+        photoCount: 3,
+        holes: [
+            { px: 17, py: 15,  pw: 221, ph: 166, shape: 'rect' }, // Top photo (y:15-180)
+            { px: 17, py: 200, pw: 221, ph: 166, shape: 'rect' }, // Middle photo (y:200-365)
+            { px: 17, py: 384, pw: 221, ph: 167, shape: 'rect' }, // Bottom photo (y:384-550)
+        ],
+    },
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function colorMatch(r: number, g: number, b: number, target: [number, number, number], tol: number): boolean {
+    return Math.abs(r - target[0]) <= tol && Math.abs(g - target[1]) <= tol && Math.abs(b - target[2]) <= tol;
+}
+
+/** Load an image from a URL and return an HTMLImageElement */
+function loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
+}
+
+/**
+ * Build a transparent version of the frame.
+ * Only pixels that are INSIDE a hole bounding box AND do NOT match
+ * any frame background color are erased (made transparent).
+ * Pixels OUTSIDE the hole bounds (e.g. text like "A-Snap") are never touched.
+ */
+function buildTransparentFrame(
+    sourceImg: HTMLImageElement,
+    bgColors: [number, number, number][],
+    tolerances: number[],
+    holes: FrameHole[]
+): HTMLCanvasElement {
+    const offscreen = document.createElement('canvas');
+    offscreen.width = sourceImg.width;
+    offscreen.height = sourceImg.height;
+    const ctx = offscreen.getContext('2d')!;
+    ctx.drawImage(sourceImg, 0, 0);
+
+    const imageData = ctx.getImageData(0, 0, offscreen.width, offscreen.height);
+    const data = imageData.data;
+    const W = offscreen.width;
+
+    // Build a fast lookup: which pixels are inside at least one hole bounding box?
+    // We expand each hole bbox by a few pixels to ensure clean edge removal.
+    const EXPAND = 4;
+    for (const hole of holes) {
+        const x0 = Math.max(0, hole.px - EXPAND);
+        const y0 = Math.max(0, hole.py - EXPAND);
+        const x1 = Math.min(offscreen.width - 1,  hole.px + hole.pw + EXPAND);
+        const y1 = Math.min(offscreen.height - 1, hole.py + hole.ph + EXPAND);
+
+        for (let y = y0; y <= y1; y++) {
+            for (let x = x0; x <= x1; x++) {
+                const i = (y * W + x) * 4;
+                const r = data[i], g = data[i + 1], b = data[i + 2];
+
+                // Only erase if it does NOT match any frame structure color
+                let isFrame = false;
+                for (let ci = 0; ci < bgColors.length; ci++) {
+                    if (colorMatch(r, g, b, bgColors[ci], tolerances[ci])) {
+                        isFrame = true;
+                        break;
+                    }
+                }
+                if (!isFrame) {
+                    data[i + 3] = 0; // transparent
+                }
+            }
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    return offscreen;
+}
+
+/** Draw a photo into a hole with object-cover cropping and optional clipping shape */
+function drawPhotoInHole(
+    ctx: CanvasRenderingContext2D,
+    photoImg: HTMLImageElement,
+    hole: FrameHole
+) {
+    const { px, py, pw, ph, shape = 'rect' } = hole;
+    
+    ctx.save();
+    ctx.beginPath();
+    
+    if (shape === 'circle') {
+        const cx = px + pw / 2;
+        const cy = py + ph / 2;
+        const radius = Math.min(pw, ph) / 2;
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    } else if (shape === 'rounded') {
+        const radius = Math.min(pw, ph) * 0.06;
+        ctx.roundRect(px, py, pw, ph, radius);
+    } else if (shape === 'heart') {
+        // Draw heart path scaled to fit hole
+        const cx = px + pw / 2;
+        const cy = py;
+        const scaleX = pw / 200;
+        const scaleY = ph / 190;
+        ctx.translate(cx, cy);
+        ctx.scale(scaleX, scaleY);
+        ctx.moveTo(0, 50);
+        ctx.bezierCurveTo(0, 20, -50, 0, -80, 30);
+        ctx.bezierCurveTo(-120, 65, -80, 120, 0, 160);
+        ctx.bezierCurveTo(80, 120, 120, 65, 80, 30);
+        ctx.bezierCurveTo(50, 0, 0, 20, 0, 50);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+    } else {
+        ctx.rect(px, py, pw, ph);
+    }
+    
+    ctx.clip();
+    
+    // Object-cover: fill hole completely, crop center
+    const imgRatio = photoImg.width / photoImg.height;
+    const holeRatio = pw / ph;
+    
+    let sx = 0, sy = 0, sw = photoImg.width, sh = photoImg.height;
+    
+    if (imgRatio > holeRatio) {
+        // Image wider than hole → crop sides
+        sw = photoImg.height * holeRatio;
+        sx = (photoImg.width - sw) / 2;
+    } else {
+        // Image taller than hole → crop top/bottom
+        sh = photoImg.width / holeRatio;
+        sy = (photoImg.height - sh) / 2;
+    }
+    
+    ctx.filter = 'contrast(105%) saturate(110%)';
+    ctx.drawImage(photoImg, sx, sy, sw, sh, px, py, pw, ph);
+    ctx.filter = 'none';
+    ctx.restore();
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 export default function ResultAction() {
     const [stripDataUrl, setStripDataUrl] = useState<string | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,117 +268,45 @@ export default function ResultAction() {
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
 
-            // Load template image
-            const templateImg = new Image();
-            templateImg.src = `/frames/${templateId}.png`;
-            await new Promise((resolve, reject) => {
-                templateImg.onload = resolve;
-                templateImg.onerror = reject;
-            });
+            // Get frame config (use frame-pink as fallback for unknown templates)
+            const config = FRAME_CONFIGS[templateId] ?? FRAME_CONFIGS['frame-pink'];
 
-            // Set canvas size to match the template image exactly
+            // Load template image
+            const templateImg = await loadImage(`/frames/${templateId}.png`);
+
+            // Set canvas size to match template
             canvas.width = templateImg.width;
             canvas.height = templateImg.height;
-
-            // Clear canvas (it will be transparent)
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw the template FIRST because the placeholders in the image are opaque
-            ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height);
+            // Build transparent frame (only erases pixels inside hole bounding boxes)
+            const transparentFrame = buildTransparentFrame(
+                templateImg,
+                config.bgColors,
+                config.tolerances,
+                config.holes
+            );
 
-            const photoCount = photos.length;
-
-            // Draw photos on top, clipped to the placeholder shapes
+            // Step 1: Draw photos into their holes FIRST
+            const photoCount = Math.min(photos.length, config.holes.length);
+            
             for (let i = 0; i < photoCount; i++) {
-                const img = new Image();
-                img.src = photos[i];
-                await new Promise((resolve) => {
-                    img.onload = resolve;
-                });
-                
-                ctx.save();
-                ctx.beginPath();
-                
-                let px = 0, py = 0, pw = 0, ph = 0;
-
-                if (templateId === 'frame-pink') {
-                    // Circles
-                    const yCenters = [172, 497, 823];
-                    const radius = 112;
-                    ctx.arc(171, yCenters[i] || 0, radius, 0, Math.PI * 2);
-                    px = 171 - radius; py = (yCenters[i] || 0) - radius; pw = radius * 2; ph = radius * 2;
-                    ctx.clip();
-                } else if (templateId === 'frame-gray') {
-                    // Rounded Squares
-                    const yStarts = [128, 411, 719];
-                    px = 66; py = yStarts[i] || 0; pw = 200; ph = 197;
-                    ctx.roundRect(px, py, pw, ph, 15);
-                    ctx.clip();
-                } else if (templateId === 'frame-blue') {
-                    // Squares
-                    const yStarts = [91, 398, 705];
-                    px = 68; py = yStarts[i] || 0; pw = 206; ph = 206;
-                    ctx.rect(px, py, pw, ph);
-                    ctx.clip();
-                } else if (templateId === 'frame-yellow') {
-                    // Hearts
-                    const yStarts = [86, 407, 728];
-                    px = 74; py = yStarts[i] || 0; pw = 195; ph = 186;
-                    
-                    ctx.translate(px, py);
-                    const scaleX = pw / 120;
-                    const scaleY = ph / 120;
-                    ctx.scale(scaleX, scaleY);
-                    
-                    ctx.moveTo(60, 30);
-                    ctx.bezierCurveTo(60, 27, 55, 0, 30, 0);
-                    ctx.bezierCurveTo(0, 0, 0, 33.75, 0, 33.75);
-                    ctx.bezierCurveTo(0, 60, 30, 85.5, 60, 110);
-                    ctx.bezierCurveTo(90, 85.5, 120, 60, 120, 33.75);
-                    ctx.bezierCurveTo(120, 33.75, 120, 0, 90, 0);
-                    ctx.bezierCurveTo(65, 0, 60, 27, 60, 30);
-                    
-                    ctx.clip();
-                    // Reset transform before drawing image
-                    ctx.setTransform(1, 0, 0, 1, 0, 0); 
-                } else if (templateId === 'frame-film') {
-                    // Film strip rectangles
-                    const yStarts = [76, 520];
-                    px = 75; py = yStarts[i] || 0; pw = 196; ph = 294;
-                    ctx.rect(px, py, pw, ph);
-                    ctx.clip();
-                }
-
-                // Calculate object-cover dimensions to fill the hole
-                const imgRatio = img.width / img.height;
-                const sliceRatio = pw / ph;
-                
-                let sWidth = img.width;
-                let sHeight = img.height;
-                let sx = 0;
-                let sy = 0;
-
-                if (imgRatio > sliceRatio) {
-                    // Image is wider than slice, crop width
-                    sWidth = img.height * sliceRatio;
-                    sx = (img.width - sWidth) / 2;
-                } else {
-                    // Image is taller than slice, crop height
-                    sHeight = img.width / sliceRatio;
-                    sy = (img.height - sHeight) / 2;
-                }
-
-                ctx.filter = 'contrast(105%) saturate(110%)';
-                ctx.drawImage(img, sx, sy, sWidth, sHeight, px, py, pw, ph);
-                ctx.restore();
+                const photoImg = await loadImage(photos[i]);
+                drawPhotoInHole(ctx, photoImg, config.holes[i]);
             }
+
+            // Step 2: Draw transparent frame ON TOP — frame structure covers edges, holes stay transparent
+            ctx.drawImage(transparentFrame, 0, 0);
 
             // Set final image
             setStripDataUrl(canvas.toDataURL('image/png'));
             setIsLoading(false);
         };
 
-        renderStrip();
+        renderStrip().catch(err => {
+            console.error('Error rendering strip:', err);
+            setIsLoading(false);
+        });
     }, []);
 
     const handleSaveToGallery = () => {
@@ -143,10 +315,8 @@ export default function ResultAction() {
             const existingGallery = sessionStorage.getItem('photobooth-gallery');
             let gallery: string[] = existingGallery ? JSON.parse(existingGallery) : [];
             
-            // Add new photo to the beginning
             gallery.unshift(stripDataUrl);
             
-            // Limit gallery to 10 items to prevent storage quota issues
             if (gallery.length > 10) {
                 gallery = gallery.slice(0, 10);
             }
