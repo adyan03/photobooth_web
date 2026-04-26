@@ -1,0 +1,10 @@
+---
+import Layout from '../layouts/main.astro';
+import AmbientBackground from '../components/AmbientBackground.astro';
+import WelcomeHero from '../components/WelcomeHero.astro';
+---
+
+<Layout title="Virtual Photobooth - Welcome" bodyClass="bg-background text-on-background min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+    <AmbientBackground variant="welcome" />
+    <WelcomeHero />
+</Layout>

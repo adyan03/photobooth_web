@@ -1,0 +1,27 @@
+---
+import "@/styles/global.css"
+import MobileNav from "@/components/MobileNav.astro"
+
+interface Props {
+  title?: string;
+  bodyClass?: string;
+}
+
+const { title = "Virtual Photobooth", bodyClass = "bg-background text-on-background min-h-screen flex flex-col relative overflow-hidden pb-20 md:pb-0" } = Astro.props;
+---
+
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  </head>
+  <body class={bodyClass}>
+    <slot />
+    <MobileNav />
+  </body>
+</html>

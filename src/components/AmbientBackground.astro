@@ -1,0 +1,21 @@
+---
+interface Props {
+  variant?: 'welcome' | 'result';
+}
+
+const { variant = 'welcome' } = Astro.props;
+---
+
+{variant === 'welcome' && (
+  <>
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-fixed-dim rounded-full blur-[100px] opacity-40 -z-10"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary-fixed-dim rounded-full blur-[100px] opacity-40 -z-10"></div>
+  </>
+)}
+
+{variant === 'result' && (
+  <>
+    <div class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 rounded-full blur-[120px] pointer-events-none"></div>
+  </>
+)}

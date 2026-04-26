@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/main.astro';
+import TopNav from '../components/TopNav.astro';
+import CameraCapture from '../components/Photobooth/CameraCapture.tsx';
+---
+
+<Layout title="Virtual Photobooth - Capture" bodyClass="bg-background text-on-background antialiased min-h-screen flex flex-col pt-16 pb-12">
+    <TopNav />
+    <main class="flex-grow flex flex-col items-center px-4 md:px-gutter max-w-container-max mx-auto w-full">
+        <CameraCapture client:load />
+    </main>
+</Layout>

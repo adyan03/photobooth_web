@@ -1,0 +1,15 @@
+---
+import Layout from '../layouts/main.astro';
+import AmbientBackground from '../components/AmbientBackground.astro';
+import TopNav from '../components/TopNav.astro';
+import ResultAction from '../components/Photobooth/ResultAction.tsx';
+---
+
+<Layout title="Virtual Photobooth - Hasil" bodyClass="bg-surface-container-low min-h-screen flex flex-col font-body-md text-on-background antialiased selection:bg-primary-container selection:text-on-primary-container relative overflow-x-hidden">
+    <AmbientBackground variant="result" />
+    <TopNav />
+    
+    <main class="flex-1 flex flex-col items-center justify-center pt-24 pb-12 px-6 w-full max-w-container-max mx-auto relative z-10">
+        <ResultAction client:load />
+    </main>
+</Layout>

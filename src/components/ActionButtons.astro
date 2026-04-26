@@ -1,0 +1,20 @@
+---
+import { Button } from "@/components/ui/button"
+---
+
+<div class="flex flex-col sm:flex-row gap-4 w-full max-w-md px-4">
+    <!-- Primary Download Button -->
+    <Button className="flex-1 bg-primary text-on-primary py-6 px-8 rounded-full font-label-sm text-label-sm flex items-center justify-center gap-3 hover:scale-[1.02] hover:bg-primary/95 transition-all shadow-[0_8px_24px_rgba(99,14,212,0.3)] hover:shadow-[0_12px_32px_rgba(99,14,212,0.4)] relative overflow-hidden group border-none">
+        <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
+        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">download</span>
+        Download Hasil
+    </Button>
+    
+    <!-- Secondary Restart Button -->
+    <Button asChild variant="outline" className="flex-1 bg-surface-container-high text-on-surface py-6 px-8 rounded-full font-label-sm text-label-sm flex items-center justify-center gap-3 hover:bg-surface-variant transition-colors border border-outline-variant/20 hover:border-outline-variant/40">
+        <a href="/">
+            <span class="material-symbols-outlined text-[20px]">restart_alt</span>
+            Mulai Sesi Baru
+        </a>
+    </Button>
+</div>
